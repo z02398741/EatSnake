@@ -1,0 +1,267 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Snake Game</title>	
+	<style>
+		td{border: 1px solid #000000; width: 20px;height: 20px;font-size: 4px;background-color:white;}
+		*{padding: 0;margin: 0}
+	</style>
+</head>
+<body>
+	<table style="float: left;">
+		<script>
+		for(var row=0;row<22;row++){
+			document.write("<tr>");
+			for(var rank=0;rank<22;rank++){
+				if (row==0||row==21||rank==0||rank==21) {
+				document.write("<td style='background-color:yellow'></td>");
+				}else{
+				document.write("<td></td>");
+				}
+			}
+			document.write("</tr>");
+		}
+		</script>
+	</table>
+	<div style="float: left; height: 300px;width: 200px; border: solid 1px #000000; margin: 30px 0 0 30px">	
+		<h4 style="float: left">得点：</h4>
+		<p id="score" style="float: left"></p><br>
+		<div id="Life"></div>
+	</div>
+	<div>
+		<button onClick="start()">start</button>
+		<button onclick="stop()">stop</button>
+	</div>
+	
+</body>
+		<script>
+			/*蛇を初始化*/
+			
+			var snake=new Array();
+				snake[0]=53;
+				snake[1]=54;
+				snake[2]=55;
+			/*スビード*/
+			var spead=500;
+			/*level*/
+			var level=0;
+			/*stop*/
+			var stopFlag=0;	
+			/*現在方向*/
+			var way = "left";
+			/*死亡判断*/
+			var deadflag = 0;
+			/*地图坐标*/
+			var row=document.getElementsByTagName("tr");//
+			var arr=new Array();
+				for(var i=0;i<22;i++){
+					var rank=row[i].getElementsByTagName("td");
+					arr[i]=new Array();
+					for(var j=0;j<22;j++){
+						arr[i][j]=rank[j];
+					};
+				};
+				/*蛇を表示する*/
+				function cleanTable(){
+					for(var row=0;row<22;row++){
+						for(var rank=0;rank<22;rank++){
+							if (row==0||row==21||rank==0||rank==21) {
+							arr[row][rank].style.backgroundColor="yellow";
+							}else{
+							arr[row][rank].style.backgroundColor="";
+							}
+						}
+					}
+				}
+				function snake_show(){
+						for(var i=0;i<snake.length;i++){
+						var num = snake[i];
+						var row_num=(~~(num/22));
+						var rank_num=(num-row_num*22);
+						arr[row_num][rank_num].style.backgroundColor="red";
+					};
+				}
+				function snake_show_2(){
+					var snake_tail=snake[snake.length-1]
+					var snake_tail_row_num=(~~(snake_tail/22));
+					var snake_tail_rank_num=(snake_tail-snake_tail_row_num*22);
+					arr[snake_tail_row_num][snake_tail_rank_num].style.backgroundColor="";
+				}
+				/*食物*/
+					var food_num;
+					function food(){
+						food_num=(~~(Math.random()*484))-(0);
+						var food_row_num=(~~(food_num/22));
+						var food_rank_num=(food_num%22);
+						// while(food_row_num==0||food_row_num==21||food_rank_num==0||food_rank_num==21) 
+						// 	do{
+						// 	food_num=(~~(Math.random()*484))-(0);
+						// 	}
+						// while (hikaku(food_num)) 
+						// 	do{
+						// 	food_num=(~~(Math.random()*484))-(0);
+						// 	}
+						var flagFood=false;
+						console.log(food_row_num);
+						for (var i = 0; i <snake.length; i++) {
+							if(snake[i]==food_num){
+								flagFood=true;
+							}
+						}
+						if (food_row_num==0||food_row_num==21||food_rank_num==0||food_rank_num==21||flagFood) 
+						{
+							food();
+						}else{
+						arr[food_row_num][food_rank_num].style.backgroundColor="blue";				
+						}
+					}
+				/*方向*/
+				function direction(e){
+					switch (e){
+						case "up":
+							 var num = snake[0]-22;
+							 // deadflag(num);
+							break;	
+						case "left"	:
+							 var num = snake[0]-1;
+							 // deadflag(num);
+							break;
+						case "right" :	
+							 var num = snake[0]+1;
+							 // deadflag(num);
+							break;
+						case "down"	:
+							var num = snake[0]+22;
+							// deadflag(num);
+							break;
+					}
+					way = e;
+					/*壁当たった判断*/
+						deadflag1();
+						if (deadflag==0) {
+							snake.unshift(num);
+								snake_show_2();
+							if(food_num==num){
+								food_num=(~~(Math.random()*484));
+								food();
+							}else{
+									snake.pop();
+								}
+								snake_show();
+							}else if (deadflag==1) {
+							window.clearInterval(auto);							
+							document.getElementById("Life").innerHTML="You are dead";		
+							snake.splice(0,snake.length);
+						}
+				}
+				function score(){
+					if(snake.length>0){
+						document.getElementById("score").innerHTML=snake.length-3;
+						level=(~~((snake.length-3)/3));
+						if (level<=3) {
+						spead=500-(level*50);
+						}else if (level>3&level<6) {
+						spead=300-(level*40);
+						}else{
+							speed=100/(level-5);
+						}		
+					}
+				}
+				var auto;
+				function startGame(){
+							snake_show();							
+							deadflag=0;
+							//操作
+							console.log(snake);
+							auto=setInterval("direction('"+way+"')",spead);	
+							document.onkeydown=function(event){
+							if (deadflag!=0) {
+								return;
+							}	
+								console.log(2);
+							var e = event || window.event || arguments.callee.caller.arguments[0];
+							 if(e && e.keyCode==38&&way!="down"){//上
+								 window.clearInterval(auto);
+									direction("up");
+								auto=setInterval("direction('up')",spead);
+								 setInterval(score,spead);
+							 }else if(e && e.keyCode==37&&way!="right"){
+								 window.clearInterval(auto);//左
+									direction("left");
+								 auto=setInterval("direction('left')",spead);
+								 setInterval(score,spead);
+							 }else if(e && e.keyCode==39&way!="left"){//右
+								 window.clearInterval(auto);
+									direction("right");
+								  auto=setInterval("direction('right')",spead);
+								 setInterval(score,spead);
+							 }else if(e && e.keyCode==40&&way!="up"){//下
+								 window.clearInterval(auto);
+									direction("down");
+								 auto=setInterval("direction('down')",spead);
+								 setInterval(score,spead);
+							 }
+						 };
+						setInterval(score,spead);
+				}
+				function stop(){
+				if (stopFlag==0) {
+					stopFlag=1;
+					window.clearInterval(auto);
+				}else if(stopFlag==1&&deadflag==0){
+					window.clearInterval(auto);
+					stopFlag=0;
+					startGame();
+				}
+				}
+				function set(){
+				snake = new Array();	
+				snake[0]=53;
+				snake[1]=54;
+				snake[2]=55;
+				arr=new Array();
+				for(var i=0;i<22;i++){
+					var rank=row[i].getElementsByTagName("td");
+					arr[i]=new Array();
+					for(var j=0;j<22;j++){
+						arr[i][j]=rank[j];
+					};
+				};
+				way="left";
+				document.getElementById("Life").innerHTML="";
+				spead=500;
+				level=0;
+				food();
+				}
+				function deadflag1(){
+					console.log(snake);
+					var SnakeRow=snake[0]%22;
+					var SnakeRank=(~~(snake[0]/22));
+					console.log(SnakeRank+","+SnakeRow);
+					for (var i=1;i<snake.length;i++) {
+						if (snake[i]==snake[0]) {
+							deadflag=1;
+						}
+					}
+					if (SnakeRow==0||SnakeRow==21||SnakeRank==0||SnakeRank==21) {
+						deadflag=1;
+					}
+					
+				}
+				function hikaku(){
+					var flagFood=false;
+					for (var i = 0; i <snake.length; i++) {
+						snake[i]==food_num;
+						flagFood=true;
+					}
+					return flagFood;
+				}
+				function start(){
+				window.clearInterval(auto);		
+				cleanTable();	
+				set();				
+				startGame();
+				}
+	</script>
+</html>
